@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
 
 // 서버와 통신
 const MongoClient = require("mongodb").MongoClient;
@@ -28,16 +29,51 @@ app.get("/write", function (요청, 응답) {
   응답.sendFile(__dirname + "/write.html");
 });
 
+// views라는 폴더를 만들고 그안에 ejs 파일을 넣어야 랜더링이됨!
+app.get("/list", function (요청, 응답) {
+  // 모든 데이터 가저올때
+  // db.collection('post').find().toArray()
+  db.collection("post")
+    .find()
+    .toArray(function (에러, 결과) {
+      // 가저온 자료를 ejs에 넣는 방법
+      응답.render("list.ejs", { posts: 결과 });
+    });
+});
+
 app.post("/add", function (요청, 응답) {
-  응답.send(요청.body);
-  // 데이터베이스로 자료 업로드 방법
-  db.collection("post").insertOne(
-    { 제목: 요청.body.inputToDoTitle, 날짜: 요청.body.inputDate },
+  db.collection("counter").findOne(
+    { name: "totalPost" },
     function (에러, 결과) {
-      if (에러) return console.log(에러);
-      console.log(결과);
+      const totalPost = 결과.totalPost;
+      // 데이터베이스로 자료 업로드 방법 + 게시물에 아이디 부여방법
+      db.collection("post").insertOne(
+        {
+          _id: totalPost + 1,
+          제목: 요청.body.inputToDoTitle,
+          날짜: 요청.body.inputDate,
+        },
+        function (에러, 결과) {
+          if (에러) return console.log(에러);
+
+          db.collection("counter").updateOne(
+            { name: "totalPost" },
+            { $inc: { totalPost: 1 } },
+            function (에러, 결과) {
+              if (에러) return console.log(에러);
+              응답.sendFile(__dirname + "/index.html");
+            }
+          );
+        }
+      );
+      // 데이터베이스로 자료 업로드 방법
     }
   );
-  console.log(요청.body);
-  // 데이터베이스로 자료 업로드 방법
+});
+
+app.delete("/delete", function (요청, 응답) {
+  요청.body._id = parseInt(요청.body._id);
+  db.collection("post").deleteOne(요청.body, function (에러, 결과) {
+    응답.status(200).send("성공");
+  });
 });
