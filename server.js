@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const methodOverride = require("method-override");
+app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
@@ -22,11 +24,11 @@ MongoClient.connect(
 // 서버와 통신
 
 app.get("/", function (요청, 응답) {
-  응답.sendFile(__dirname + "/index.html");
+  응답.render("index.ejs");
 });
 
 app.get("/write", function (요청, 응답) {
-  응답.sendFile(__dirname + "/write.html");
+  응답.render("write.ejs");
 });
 
 // views라는 폴더를 만들고 그안에 ejs 파일을 넣어야 랜더링이됨!
@@ -61,7 +63,7 @@ app.post("/add", function (요청, 응답) {
             { $inc: { totalPost: 1 } },
             function (에러, 결과) {
               if (에러) return console.log(에러);
-              응답.sendFile(__dirname + "/index.html");
+              응답.redirect("/list");
             }
           );
         }
@@ -71,9 +73,41 @@ app.post("/add", function (요청, 응답) {
   );
 });
 
+// 클릭하면 디테일 페이지로 이동
 app.delete("/delete", function (요청, 응답) {
   요청.body._id = parseInt(요청.body._id);
   db.collection("post").deleteOne(요청.body, function (에러, 결과) {
     응답.status(200).send("성공");
   });
 });
+
+app.get("/detail/:id", function (요청, 응답) {
+  db.collection("post").findOne(
+    { _id: parseInt(요청.params.id) },
+    function (애러, 결과) {
+      응답.render("detail.ejs", { data: 결과 });
+    }
+  );
+});
+// 클릭하면 디테일 페이지로 이동
+
+// 글 수정
+app.get("/edit/:id", function (요청, 응답) {
+  db.collection("post").findOne(
+    { _id: parseInt(요청.params.id) },
+    function (애러, 결과) {
+      응답.render("edit.ejs", { post: 결과 });
+    }
+  );
+});
+
+app.put("/edit", function (요청, 응답) {
+  db.collection("post").updateOne(
+    { _id: parseInt(요청.body.id) },
+    { $set: { 제목: 요청.body.inputToDoTitle, 날짜: 요청.body.inputDate } },
+    function (에러, 결과) {
+      응답.redirect("/list");
+    }
+  );
+});
+// 글 수정
