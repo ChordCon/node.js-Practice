@@ -43,6 +43,32 @@ app.get("/list", function (요청, 응답) {
     });
 });
 
+// 서버에서 검색한 데이터 꺼내기
+app.get("/search", function (요청, 응답) {
+  var 검색조건 = [
+    {
+      $search: {
+        index: "titleSearch",
+        text: {
+          query: 요청.query.value,
+          path: "제목", // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+        },
+      },
+    },
+    { $sort: { 날짜: -1 } },
+  ];
+
+  console.log(요청.query.value);
+  db.collection("post")
+    .aggregate(검색조건)
+    .toArray(function (에러, 결과) {
+      // 가저온 자료를 ejs에 넣는 방법
+      console.log(결과);
+      응답.render("search.ejs", { posts: 결과 });
+    });
+});
+// 서버에서 검색한 데이터 꺼내기
+
 app.post("/add", function (요청, 응답) {
   db.collection("counter").findOne(
     { name: "totalPost" },
@@ -111,3 +137,76 @@ app.put("/edit", function (요청, 응답) {
   );
 });
 // 글 수정
+
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const session = require("express-session");
+
+// 로그인
+app.use(
+  session({ secret: "비밀코드", resave: true, saveUninitialized: false })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get("/login", function (요청, 응답) {
+  응답.render("login.ejs");
+});
+
+app.post(
+  "/login",
+  passport.authenticate("local", { failureRedirect: "/fail" }),
+  function (요청, 응답) {
+    응답.redirect("/");
+  }
+);
+
+app.get("/mypage", login, function (요청, 응답) {
+  응답.render("mypage.ejs", { 사용자: 요청.user });
+});
+
+function login(요청, 응답, next) {
+  if (요청.user) {
+    next();
+  } else {
+    응답.send("로그인 해주세요.");
+  }
+}
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "id",
+      passwordField: "pw",
+      session: true,
+      passReqToCallback: false,
+    },
+    function (입력한아이디, 입력한비번, done) {
+      //console.log(입력한아이디, 입력한비번);
+      db.collection("login").findOne(
+        { id: 입력한아이디 },
+        function (에러, 결과) {
+          if (에러) return done(에러);
+
+          if (!결과)
+            return done(null, false, { message: "존재하지않는 아이디요" });
+          if (입력한비번 == 결과.pw) {
+            return done(null, 결과);
+          } else {
+            return done(null, false, { message: "비번틀렸어요" });
+          }
+        }
+      );
+    }
+  )
+);
+passport.serializeUser(function (user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function (아이디, done) {
+  db.collection("login").findOne({ id: 아이디 }, function (에러, 결과) {
+    done(null, 결과);
+  });
+});
+// 로그인
