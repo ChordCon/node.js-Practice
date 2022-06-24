@@ -14,14 +14,15 @@
   <body>
     <%- include('nav.html') %>
 
+    <p style="text-align: center; margin-top: 10px">
+      <%= 사용자.id %>님 환영합니다.
+    </p>
+
     <div class="card" style="width: 100%">
       <div class="card-body">
         <h5 class="card-title"><%= data.제목%></h5>
         <h6 class="card-subtitle mb-2 text-muted"><%= data.날짜%></h6>
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <p class="card-text"><%= data.상세내용%></p>
       </div>
     </div>
 

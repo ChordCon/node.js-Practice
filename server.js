@@ -23,121 +23,6 @@ MongoClient.connect(
 );
 // 서버와 통신
 
-app.get("/", function (요청, 응답) {
-  응답.render("index.ejs");
-});
-
-app.get("/write", function (요청, 응답) {
-  응답.render("write.ejs");
-});
-
-// views라는 폴더를 만들고 그안에 ejs 파일을 넣어야 랜더링이됨!
-app.get("/list", function (요청, 응답) {
-  // 모든 데이터 가저올때
-  // db.collection('post').find().toArray()
-  db.collection("post")
-    .find()
-    .toArray(function (에러, 결과) {
-      // 가저온 자료를 ejs에 넣는 방법
-      응답.render("list.ejs", { posts: 결과 });
-    });
-});
-
-// 서버에서 검색한 데이터 꺼내기
-app.get("/search", function (요청, 응답) {
-  var 검색조건 = [
-    {
-      $search: {
-        index: "titleSearch",
-        text: {
-          query: 요청.query.value,
-          path: "제목", // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
-        },
-      },
-    },
-    { $sort: { 날짜: -1 } },
-  ];
-
-  console.log(요청.query.value);
-  db.collection("post")
-    .aggregate(검색조건)
-    .toArray(function (에러, 결과) {
-      // 가저온 자료를 ejs에 넣는 방법
-      console.log(결과);
-      응답.render("search.ejs", { posts: 결과 });
-    });
-});
-// 서버에서 검색한 데이터 꺼내기
-
-app.post("/add", function (요청, 응답) {
-  db.collection("counter").findOne(
-    { name: "totalPost" },
-    function (에러, 결과) {
-      const totalPost = 결과.totalPost;
-      // 데이터베이스로 자료 업로드 방법 + 게시물에 아이디 부여방법
-      db.collection("post").insertOne(
-        {
-          _id: totalPost + 1,
-          제목: 요청.body.inputToDoTitle,
-          날짜: 요청.body.inputDate,
-        },
-        function (에러, 결과) {
-          if (에러) return console.log(에러);
-
-          db.collection("counter").updateOne(
-            { name: "totalPost" },
-            { $inc: { totalPost: 1 } },
-            function (에러, 결과) {
-              if (에러) return console.log(에러);
-              응답.redirect("/list");
-            }
-          );
-        }
-      );
-      // 데이터베이스로 자료 업로드 방법
-    }
-  );
-});
-
-// 클릭하면 디테일 페이지로 이동
-app.delete("/delete", function (요청, 응답) {
-  요청.body._id = parseInt(요청.body._id);
-  db.collection("post").deleteOne(요청.body, function (에러, 결과) {
-    응답.status(200).send("성공");
-  });
-});
-
-app.get("/detail/:id", function (요청, 응답) {
-  db.collection("post").findOne(
-    { _id: parseInt(요청.params.id) },
-    function (애러, 결과) {
-      응답.render("detail.ejs", { data: 결과 });
-    }
-  );
-});
-// 클릭하면 디테일 페이지로 이동
-
-// 글 수정
-app.get("/edit/:id", function (요청, 응답) {
-  db.collection("post").findOne(
-    { _id: parseInt(요청.params.id) },
-    function (애러, 결과) {
-      응답.render("edit.ejs", { post: 결과 });
-    }
-  );
-});
-
-app.put("/edit", function (요청, 응답) {
-  db.collection("post").updateOne(
-    { _id: parseInt(요청.body.id) },
-    { $set: { 제목: 요청.body.inputToDoTitle, 날짜: 요청.body.inputDate } },
-    function (에러, 결과) {
-      응답.redirect("/list");
-    }
-  );
-});
-// 글 수정
-
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
@@ -153,16 +38,24 @@ app.get("/login", function (요청, 응답) {
   응답.render("login.ejs");
 });
 
+app.get("/fail", function (요청, 응답) {
+  응답.render("fail.ejs");
+});
+
 app.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/fail" }),
   function (요청, 응답) {
-    응답.redirect("/");
+    응답.redirect("/list");
   }
 );
 
 app.get("/mypage", login, function (요청, 응답) {
-  응답.render("mypage.ejs", { 사용자: 요청.user });
+  if (요청.user === undefined) {
+    응답.send("로그인해주세요");
+  } else {
+    응답.render("mypage.ejs", { 사용자: 요청.user });
+  }
 });
 
 function login(요청, 응답, next) {
@@ -210,3 +103,176 @@ passport.deserializeUser(function (아이디, done) {
   });
 });
 // 로그인
+
+app.get("/", function (요청, 응답) {
+  db.collection("login");
+
+  요청.user === undefined
+    ? 응답.render("index.ejs", { 사용자: 요청.user })
+    : db
+        .collection("post")
+        .find()
+        .toArray(function (에러, 결과) {
+          // 가저온 자료를 ejs에 넣는 방법
+          응답.render("list.ejs", { posts: 결과, 사용자: 요청.user });
+        });
+});
+
+app.get("/write", function (요청, 응답) {
+  db.collection("login");
+  if (요청.user === undefined) {
+    응답.send("로그인해주세요");
+  } else {
+    응답.render("write.ejs", { 사용자: 요청.user });
+  }
+});
+
+// views라는 폴더를 만들고 그안에 ejs 파일을 넣어야 랜더링이됨!
+app.get("/list", function (요청, 응답) {
+  db.collection("login");
+  // 모든 데이터 가저올때
+  // db.collection('post').find().toArray()
+  if (요청.user === undefined) {
+    응답.send("로그인해주세요");
+  } else {
+    db.collection("post")
+      .find()
+      .toArray(function (에러, 결과) {
+        // 가저온 자료를 ejs에 넣는 방법
+
+        응답.render("list.ejs", { posts: 결과, 사용자: 요청.user });
+      });
+  }
+});
+
+// 서버에서 검색한 데이터 꺼내기
+app.get("/search", function (요청, 응답) {
+  var 검색조건 = [
+    {
+      $search: {
+        index: "titleSearch",
+        text: {
+          query: 요청.query.value,
+          path: "제목", // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+        },
+      },
+    },
+    { $sort: { 날짜: -1 } },
+  ];
+
+  db.collection("post")
+    .aggregate(검색조건)
+    .toArray(function (에러, 결과) {
+      // 가저온 자료를 ejs에 넣는 방법
+
+      응답.render("search.ejs", { posts: 결과 });
+    });
+});
+// 서버에서 검색한 데이터 꺼내기
+
+app.delete("/delete", function (요청, 응답) {
+  요청.body._id = parseInt(요청.body._id);
+  let 삭제할데이터 = { _id: 요청.body._id, 작성자: 요청.user.id };
+  db.collection("post").deleteOne(삭제할데이터, function (에러, 결과) {
+    응답.status(200).send("성공");
+  });
+});
+
+// 클릭하면 디테일 페이지로 이동
+app.get("/detail/:id", function (요청, 응답) {
+  db.collection("login");
+  db.collection("post").findOne(
+    { _id: parseInt(요청.params.id) },
+    function (애러, 결과) {
+      응답.render("detail.ejs", { data: 결과, 사용자: 요청.user });
+    }
+  );
+});
+// 클릭하면 디테일 페이지로 이동
+
+// 글 수정
+app.get("/edit/:id", function (요청, 응답) {
+  db.collection("login");
+  db.collection("post");
+
+  db.collection("post").findOne(
+    { _id: parseInt(요청.params.id) },
+    function (애러, 결과) {
+      if (요청.user.id !== 결과.작성자) {
+        응답.send("본인이 작성한 글만 수정가능합니다.");
+      } else {
+        응답.render("edit.ejs", { post: 결과, 사용자: 요청.user });
+      }
+    }
+  );
+});
+
+app.put("/edit", function (요청, 응답) {
+  db.collection("post").updateOne(
+    { _id: parseInt(요청.body.id) },
+    { $set: { 제목: 요청.body.inputToDoTitle, 날짜: 요청.body.inputDate } },
+    function (에러, 결과) {
+      응답.redirect("/list");
+    }
+  );
+});
+// 글 수정
+
+// 글 추가
+app.post("/add", function (요청, 응답) {
+  db.collection("login");
+  db.collection("counter").findOne(
+    { name: "totalPost" },
+    function (에러, 결과) {
+      const totalPost = 결과.totalPost;
+      const inform = {
+        _id: totalPost + 1,
+        제목: 요청.body.inputToDoTitle,
+        날짜: 요청.body.inputDate,
+        상세내용: 요청.body.inputContent,
+        작성자: 요청.user.id,
+      };
+      // 데이터베이스로 자료 업로드 방법 + 게시물에 아이디 부여방법
+      db.collection("post").insertOne(inform, function (에러, 결과) {
+        if (에러) return console.log(에러);
+
+        db.collection("counter").updateOne(
+          { name: "totalPost" },
+          { $inc: { totalPost: 1 } },
+          function (에러, 결과) {
+            if (에러) return console.log(에러);
+
+            응답.redirect("/list");
+          }
+        );
+      });
+      // 데이터베이스로 자료 업로드 방법
+    }
+  );
+});
+// 글 추가
+
+// 회원가입
+app.get("/register", function (요청, 응답) {
+  응답.render("register.ejs");
+});
+
+app.post("/register", function (요청, 응답) {
+  db.collection("login").findOne(
+    { id: 요청.body.id },
+    function (에러, 중복결과) {
+      if (중복결과 === null) {
+        db.collection("login").insertOne(
+          { id: 요청.body.id, pw: 요청.body.pw },
+
+          function (에러, 결과) {
+            응답.render("index.ejs");
+          }
+        );
+      } else {
+        응답.send("이미 존재하는 아이디입니다.");
+      }
+    }
+  );
+});
+// 회원가입
