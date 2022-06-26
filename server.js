@@ -287,3 +287,40 @@ app.use("/shop", require("./routes/shop.js"));
 
 app.use("/board/sub", require("./routes/board.js"));
 // 라우터
+
+// 멀터(업로드 편하게 하는거) 세팅
+let multer = require("multer");
+let storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./public/img");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+  // filefilter : function(req, file, cb){
+  //  파일 확장자 필터(ex: 이미지만 )
+  // },
+  // limits : function(req, file, cb) {
+  //  파일 크기 리밋 설정
+  // }
+});
+
+let upload = multer({ storage: storage });
+// 멀터(업로드 편하게 하는거) 세팅
+
+// 이미지 업로드
+app.get("/upload", function (req, res) {
+  res.render("upload.ejs");
+});
+
+app.post("/upload", upload.single("uploadImg"), function (req, res) {
+  res.send("완료");
+});
+// 이미지 업로드
+
+// 이미지 보여주기
+// "/img/:imgName" :뒤에 부분은 유저가 주소창에 입력한 값.
+app.get("/img/:imgName", function (req, res) {
+  res.sendFile(__dirname + "/public/img/" + req.params.imgName + ".png");
+});
+// 이미지 보여주기
