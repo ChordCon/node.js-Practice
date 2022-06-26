@@ -58,6 +58,7 @@ app.get("/mypage", login, function (요청, 응답) {
   }
 });
 
+// 로그인 체크
 function login(요청, 응답, next) {
   if (요청.user) {
     next();
@@ -280,3 +281,9 @@ app.post("/register", function (요청, 응답) {
   );
 });
 // 회원가입
+
+// 라우터
+app.use("/shop", require("./routes/shop.js"));
+
+app.use("/board/sub", require("./routes/board.js"));
+// 라우터
