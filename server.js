@@ -174,7 +174,11 @@ app.delete("/delete", function (요청, 응답) {
   요청.body._id = parseInt(요청.body._id);
   let 삭제할데이터 = { _id: 요청.body._id, 작성자: 요청.user.id };
   db.collection("post").deleteOne(삭제할데이터, function (에러, 결과) {
-    응답.status(200).send("성공");
+    if (결과.deletedCount == 0) {
+      응답.status(200).send("오류");
+    } else {
+      응답.status(200).send("완료");
+    }
   });
 });
 
