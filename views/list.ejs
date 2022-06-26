@@ -62,18 +62,17 @@
           url: "/delete",
           data: { _id: 글번호 },
         })
-          .done(function (결과) {
-            location.reload();
-          })
-          .fail(function (xhr, textStatus, errorThrown) {
-            console.log(xhr, textStatus, errorThrown);
-          })
-          .then(function (에러, 결과) {
+          .done(function (에러, 결과) {
+            console.log(에러);
             if (에러 === "오류") {
               alert("니글 아님!");
             } else {
               alert("글을 삭제합니다.");
             }
+            location.reload();
+          })
+          .fail(function (xhr, textStatus, errorThrown) {
+            console.log(xhr, textStatus, errorThrown);
           });
       });
     </script>
