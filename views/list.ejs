@@ -28,6 +28,7 @@
       <% for (let i = 0; i < posts.length; i++) { %>
       <div class="card">
         <div class="card-body">
+          <p><%= posts[i].작성자%></p>
           <h3 class="card-title">
             <a
               style="text-decoration: none; color: black"
@@ -36,15 +37,11 @@
             >
           </h3>
           <h5 class="card-title"><%= posts[i].날짜%></h5>
-          <p><%= posts[i].작성자%></p>
 
-          <a class="btn btn-primary edit" href="/edit/<%= posts[i]._id %>"
-            >수정</a
-          >
-          <!--html에서 숨겨진 데이터값 집어넣는 방법 data-id -->
+          <!-- html에서 숨겨진 데이터값 집어넣는 방법 data-id
           <a class="btn btn-primary delete" data-id="<%= posts[i]._id%>"
             >삭제</a
-          >
+          > 삭제 버튼은 디테일로 옴겼습니다.-->
         </div>
       </div>
       <% } %>
@@ -53,10 +50,11 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
     <!-- 삭제 버튼을 누르면 해당하는 글을 삭제 -->
-    <script>
+    <!-- 삭제 버튼은 디테일페이지로 이동되었습니다. -->
+    <!-- <script>
       $(".delete").click(function (e) {
         let 글번호 = e.target.dataset.id;
-
+        console.log(e.target.dataset);
         $.ajax({
           method: "DELETE",
           url: "/delete",
@@ -75,7 +73,7 @@
             console.log(xhr, textStatus, errorThrown);
           });
       });
-    </script>
+    </script> -->
     <!-- 삭제 버튼을 누르면 해당하는 글을 삭제 -->
 
     <!-- 검색버튼 기능 검색 버튼을 누르면 url이 바뀌어서 겟요청 -->

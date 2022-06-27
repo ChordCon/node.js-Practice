@@ -23,8 +23,142 @@
         <h5 class="card-title"><%= data.제목%></h5>
         <h6 class="card-subtitle mb-2 text-muted"><%= data.날짜%></h6>
         <p class="card-text"><%= data.상세내용%></p>
+
+        <% if (data.작성자 == 사용자.id) { %>
+        <a class="btn btn-primary edit" href="/edit/<%= data._id %>">수정</a>
+        <a class="btn btn-primary edit delete" data-id="<%= data._id%>">삭제</a>
+        <% } %>
+
+        <div style="display: inline">
+          <a
+            class="btn btn-primary"
+            data-bs-toggle="collapse"
+            href="#collapseExample"
+            role="button"
+            aria-expanded="false"
+            aria-controls="collapseExample"
+          >
+            댓글
+          </a>
+
+          <form action="/chat" method="POST">
+            <div style="margin-top: 10px" class="collapse" id="collapseExample">
+              <div
+                style="
+                  display: inline-block;
+                  margin-top: 10px;
+                  width: 100%;
+                  text-align: center;
+                "
+                class="card card-body"
+              >
+                <input
+                  name="글id"
+                  type="text"
+                  value="<%= data._id%>"
+                  style="display: none"
+                />
+                <input
+                  name="글주인"
+                  type="text"
+                  value="<%= data.작성자%>"
+                  style="display: none"
+                />
+                <input
+                  name="inputChat"
+                  type="text"
+                  style="width: 70%; padding: 3px"
+                />
+                <button
+                  class="btn btn-primary"
+                  style="width: 20%; padding: 3px; margin-bottom: 5px"
+                  type="submit"
+                >
+                  댓글달기
+                </button>
+                <br />
+                <% for (let j = 0; j < chats.length; j++) { %> <% if
+                (chats[j].댓글다는글의id == data._id) { %>
+                <div
+                  style="
+                    text-align: left;
+                    border-bottom: 1px solid;
+                    padding: 5px;
+                  "
+                >
+                  <span style="border-right: 1px solid; padding: 0 5px"
+                    ><%= chats[j].댓글작성자%></span
+                  >
+                  <span><%= chats[j].내용%></span>
+                  <span
+                    style="font-size: 10px; display: block; text-align: right"
+                  >
+                    <% if (chats[j].댓글작성자 == 사용자.id) { %>
+                    <a
+                      style="font-size: 10px; padding: 3px; text-align: right"
+                      class="btn btn-primary"
+                      href="/editComments/<%= chats[j]._id %>"
+                    >
+                      >수정</a
+                    >
+                    <a
+                      style="font-size: 10px; padding: 3px; text-align: right"
+                      class="btn btn-primary deleteChat"
+                      data-id="<%= chats[j]._id%>"
+                      >삭제</a
+                    >
+                    <% } %>
+                  </span>
+                  <span
+                    style="font-size: 10px; display: block; text-align: right"
+                  >
+                    <span><%= chats[j].작성날짜%></span>
+                  </span>
+                </div>
+                <%}%> <% } %>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+    <!-- 삭제 버튼을 누르면 해당하는 글을 삭제 -->
+    <script>
+      $(".deleteChat").click(function (e) {
+        let 글번호 = e.target.dataset.id;
+
+        $.ajax({
+          method: "DELETE",
+          url: "/deleteChat",
+          data: { _id: 글번호 },
+        })
+          .done(function (에러, 결과) {
+            location.reload();
+          })
+          .fail(function (xhr, textStatus, errorThrown) {
+            console.log(xhr, textStatus, errorThrown);
+          });
+      });
+
+      $(".delete").click(function (e) {
+        let 글번호 = e.target.dataset.id;
+        console.log(e.target.dataset);
+        $.ajax({
+          method: "DELETE",
+          url: "/delete",
+          data: { _id: 글번호 },
+        })
+          .done(function (에러, 결과) {
+            alert("글을 삭제 합니다.");
+            location.href = "/list";
+          })
+          .fail(function (xhr, textStatus, errorThrown) {
+            console.log(xhr, textStatus, errorThrown);
+          });
+      });
+    </script>
 
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"

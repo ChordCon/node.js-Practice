@@ -112,6 +112,7 @@ app.get("/", function (요청, 응답) {
     ? 응답.render("index.ejs", { 사용자: 요청.user })
     : db
         .collection("post")
+
         .find()
         .toArray(function (에러, 결과) {
           // 가저온 자료를 ejs에 넣는 방법
@@ -131,6 +132,7 @@ app.get("/write", function (요청, 응답) {
 // views라는 폴더를 만들고 그안에 ejs 파일을 넣어야 랜더링이됨!
 app.get("/list", function (요청, 응답) {
   db.collection("login");
+
   // 모든 데이터 가저올때
   // db.collection('post').find().toArray()
   if (요청.user === undefined) {
@@ -140,8 +142,10 @@ app.get("/list", function (요청, 응답) {
       .find()
       .toArray(function (에러, 결과) {
         // 가저온 자료를 ejs에 넣는 방법
-
-        응답.render("list.ejs", { posts: 결과, 사용자: 요청.user });
+        응답.render("list.ejs", {
+          posts: 결과,
+          사용자: 요청.user,
+        });
       });
   }
 });
@@ -175,11 +179,15 @@ app.delete("/delete", function (요청, 응답) {
   요청.body._id = parseInt(요청.body._id);
   let 삭제할데이터 = { _id: 요청.body._id, 작성자: 요청.user.id };
   db.collection("post").deleteOne(삭제할데이터, function (에러, 결과) {
-    if (결과.deletedCount == 0) {
-      응답.status(200).send("오류");
-    } else {
-      응답.status(200).send("완료");
-    }
+    응답.status(200).send("완료");
+  });
+});
+
+app.delete("/deleteChat", function (요청, 응답) {
+  요청.body._id = parseInt(요청.body._id);
+  let 삭제할데이터 = { _id: 요청.body._id, 댓글작성자: 요청.user.id };
+  db.collection("chat").deleteOne(삭제할데이터, function (에러, 결과) {
+    응답.status(200).send("완료");
   });
 });
 
@@ -189,7 +197,15 @@ app.get("/detail/:id", function (요청, 응답) {
   db.collection("post").findOne(
     { _id: parseInt(요청.params.id) },
     function (애러, 결과) {
-      응답.render("detail.ejs", { data: 결과, 사용자: 요청.user });
+      db.collection("chat")
+        .find()
+        .toArray(function (에러, 결과2) {
+          응답.render("detail.ejs", {
+            data: 결과,
+            chats: 결과2,
+            사용자: 요청.user,
+          });
+        });
     }
   );
 });
@@ -222,6 +238,29 @@ app.put("/edit", function (요청, 응답) {
   );
 });
 // 글 수정
+
+// 댓글 수정
+app.get("/editComments/:id", function (요청, 응답) {
+  db.collection("login");
+
+  db.collection("chat").findOne(
+    { _id: parseInt(요청.params.id) },
+    function (애러, 결과) {
+      응답.render("editComments.ejs", { chat: 결과, 사용자: 요청.user });
+    }
+  );
+});
+
+app.put("/editComments", function (요청, 응답) {
+  db.collection("chat").updateOne(
+    { _id: parseInt(요청.body.id) },
+    { $set: { 내용: 요청.body.inputChat } },
+    function (에러, 결과) {
+      응답.redirect(`/detail/${요청.body.댓글다는글의id}`);
+    }
+  );
+});
+// 댓글 수정
 
 // 글 추가
 app.post("/add", function (요청, 응답) {
@@ -324,3 +363,48 @@ app.get("/img/:imgName", function (req, res) {
   res.sendFile(__dirname + "/public/img/" + req.params.imgName + ".png");
 });
 // 이미지 보여주기
+
+// 글 추가
+app.post("/chat", login, function (req, res) {
+  db.collection("post");
+  db.collection("counter").findOne(
+    { name: "totalPost" },
+    function (에러, 결과) {
+      const totalPost = 결과.totalPost;
+      const date = new Date();
+
+      const inform = {
+        _id: totalPost + 1,
+        내용: req.body.inputChat,
+        작성날짜:
+          date.getMonth() +
+          1 +
+          "월 " +
+          date.getDate() +
+          "일 " +
+          date.getHours() +
+          "시",
+        댓글작성자: req.user.id,
+        댓글다는글의id: req.body.글id,
+        글주인: req.body.글주인,
+      };
+
+      // 데이터베이스로 자료 업로드 방법 + 게시물에 아이디 부여방법
+      db.collection("chat").insertOne(inform, function (에러, 결과) {
+        if (에러) return console.log(에러);
+
+        db.collection("counter").updateOne(
+          { name: "totalPost" },
+          { $inc: { totalPost: 1 } },
+          function (에러, 결과) {
+            if (에러) return console.log(에러);
+
+            res.redirect(`/detail/${req.body.글id}`);
+          }
+        );
+      });
+      // 데이터베이스로 자료 업로드 방법
+    }
+  );
+});
+// 글 추가
