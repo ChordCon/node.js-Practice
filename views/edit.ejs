@@ -13,17 +13,24 @@
   </head>
   <body>
     <%- include('nav.html') %>
-    <p style="text-align: center; margin-top: 10px;"><%= 사용자.id %>님 환영합니다.</p>
-    <form action="/edit?_method=PUT" method="POST" class="row g-3" style="padding: 40px;">
+    <p style="text-align: center; margin-top: 10px">
+      <%= 사용자.id %>님 환영합니다.
+    </p>
+    <form
+      action="/edit?_method=PUT"
+      method="POST"
+      class="row g-3"
+      style="padding: 40px"
+    >
       <div class="col-12 form-group">
         <label class="form-label">할 일</label>
-        <input value="<%= post._id %>" name="id" style="display : none">
+        <input value="<%= post._id %>" name="id" style="display: none" />
         <input
           type="text"
           class="form-control"
           name="inputToDoTitle"
           value="<%= post.제목%>"
-        >
+        />
       </div>
       <div class="col-12 form-group">
         <label class="form-label">Due date</label>
@@ -32,9 +39,20 @@
           class="form-control"
           name="inputDate"
           value="<%= post.날짜%>"
+        />
+      </div>
+      <div class="col-12 form-group">
+        <label class="form-label">상세 내용</label>
+        <textarea
+          style="height: 300px"
+          type="text"
+          class="form-control"
+          name="inputContent"
+        >
+<%= post.상세내용%></textarea
         >
       </div>
-      </div>
+
       <div class="col-12">
         <button type="submit" class="btn btn-outline-danger">Submit</button>
       </div>

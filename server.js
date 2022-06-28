@@ -141,9 +141,18 @@ app.get("/list", function (요청, 응답) {
     db.collection("post")
       .find()
       .toArray(function (에러, 결과) {
+        const date = new Date();
         // 가저온 자료를 ejs에 넣는 방법
         응답.render("list.ejs", {
           posts: 결과,
+          작성날짜:
+            date.getMonth() +
+            1 +
+            "월 " +
+            date.getDate() +
+            "일 " +
+            date.getHours() +
+            "시",
           사용자: 요청.user,
         });
       });
@@ -229,9 +238,26 @@ app.get("/edit/:id", function (요청, 응답) {
 });
 
 app.put("/edit", function (요청, 응답) {
+  const date = new Date();
   db.collection("post").updateOne(
     { _id: parseInt(요청.body.id) },
-    { $set: { 제목: 요청.body.inputToDoTitle, 날짜: 요청.body.inputDate } },
+    {
+      $set: {
+        제목: 요청.body.inputToDoTitle,
+        날짜: 요청.body.inputDate,
+        // 날짜는 해야할 날짜
+        작성날짜:
+          date.getMonth() +
+          1 +
+          "월 " +
+          date.getDate() +
+          "일 " +
+          date.getHours() +
+          "시",
+        수정됨: "(수정됨)",
+        상세내용: 요청.body.inputContent,
+      },
+    },
     function (에러, 결과) {
       응답.redirect("/list");
     }
@@ -252,9 +278,23 @@ app.get("/editComments/:id", function (요청, 응답) {
 });
 
 app.put("/editComments", function (요청, 응답) {
+  const date = new Date();
   db.collection("chat").updateOne(
     { _id: parseInt(요청.body.id) },
-    { $set: { 내용: 요청.body.inputChat } },
+    {
+      $set: {
+        내용: 요청.body.inputChat,
+        작성날짜:
+          date.getMonth() +
+          1 +
+          "월 " +
+          date.getDate() +
+          "일 " +
+          date.getHours() +
+          "시",
+        수정됨: "(수정됨)",
+      },
+    },
     function (에러, 결과) {
       응답.redirect(`/detail/${요청.body.댓글다는글의id}`);
     }
@@ -264,6 +304,7 @@ app.put("/editComments", function (요청, 응답) {
 
 // 글 추가
 app.post("/add", function (요청, 응답) {
+  const date = new Date();
   db.collection("login");
   db.collection("counter").findOne(
     { name: "totalPost" },
@@ -273,7 +314,16 @@ app.post("/add", function (요청, 응답) {
         _id: totalPost + 1,
         제목: 요청.body.inputToDoTitle,
         날짜: 요청.body.inputDate,
+        // 날짜는 해야할 날짜입니다.
         상세내용: 요청.body.inputContent,
+        작성날짜:
+          date.getMonth() +
+          1 +
+          "월 " +
+          date.getDate() +
+          "일 " +
+          date.getHours() +
+          "시",
         작성자: 요청.user.id,
       };
       // 데이터베이스로 자료 업로드 방법 + 게시물에 아이디 부여방법
