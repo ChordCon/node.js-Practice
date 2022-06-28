@@ -10,40 +10,59 @@
       integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
       crossorigin="anonymous"
     />
+    <!-- 폼안에서 type="submit"이 엔터에 작동하지 않게 하는방법 -->
+    <script language="javascript">
+      
+      function stopRKey(evt) {
+         var evt = (evt) ? evt : ((event) ? event : null);
+         var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+         if ((evt.keyCode == 13) && (node.type=="text"))  {return false;}
+      }
+      
+      document.onkeypress = stopRKey;
+      </script>
+      <!-- 폼안에서 type="submit"이 엔터에 작동하지 않게 하는방법 -->
   </head>
   <body>
     <%- include('nav.html') %>
-    <p style="text-align: center; margin-top: 10px;"><%= 사용자.id %>님 환영합니다.</p>
-    <form action="/add" method="POST" class="row g-3" style="padding: 40px;">
+    <p style="text-align: center; margin-top: 10px">
+      <%= 사용자.id %>님 환영합니다.
+    </p>
+   
+    <form
+    
+      action="/add"
+      method="POST"
+      class="row g-3"
+      style="padding: 40px"
+    >
       <div class="col-12 form-group">
         <label class="form-label">할 일</label>
-        <input
-          type="text"
-          class="form-control"
-          name="inputToDoTitle"
-        >
+
+        <input type="text" class="form-control" name="inputToDoTitle" />
+
       </div>
       <div class="col-12 form-group">
         <label class="form-label">Due date</label>
-        <input
-          type="date"
-          class="form-control"
-          name="inputDate"
-        >
+        <input type="date" class="form-control" name="inputDate" />
+
       </div>
       <div class="col-12 form-group">
         <label class="form-label">상세 내용</label>
-        <input
-        style="height: 300px;"
+        <textarea        
+          style="height: 300px"
           type="text"
           class="form-control"
           name="inputContent"
-        >
-      </div>
+        ></textarea>
+        
       </div>
       <div class="col-12">
-        <button type="submit" class="btn btn-outline-danger">Submit</button>
-      </div>
+      <button  type="submit" class="btn btn-outline-danger">
+        Submit
+      </buton>
+     
+    </div>
     </form>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"

@@ -36,7 +36,8 @@
               ><%= posts[i].제목%></a
             >
           </h3>
-          <h5 class="card-title"><%= posts[i].날짜%></h5>
+          <p><%= posts[i].작성날짜%> <%= posts[i].수정됨%></p>
+          <p class="card-title">해야 할 날짜 : <%= posts[i].날짜%></p>
 
           <!-- html에서 숨겨진 데이터값 집어넣는 방법 data-id
           <a class="btn btn-primary delete" data-id="<%= posts[i]._id%>"

@@ -10,6 +10,23 @@
       integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
       crossorigin="anonymous"
     />
+    <!-- 폼안에서 type="submit"이 엔터에 작동하지 않게 하는방법 -->
+    <script language="javascript">
+      function stopRKey(evt) {
+        var evt = evt ? evt : event ? event : null;
+        var node = evt.target
+          ? evt.target
+          : evt.srcElement
+          ? evt.srcElement
+          : null;
+        if (evt.keyCode == 13 && node.type == "text") {
+          return false;
+        }
+      }
+
+      document.onkeypress = stopRKey;
+    </script>
+    <!-- 폼안에서 type="submit"이 엔터에 작동하지 않게 하는방법 -->
   </head>
   <body>
     <%- include('nav.html') %>
@@ -21,9 +38,14 @@
     <div class="card" style="width: 100%">
       <div class="card-body">
         <h5 class="card-title"><%= data.제목%></h5>
-        <h6 class="card-subtitle mb-2 text-muted"><%= data.날짜%></h6>
-        <p class="card-text"><%= data.상세내용%></p>
-
+        <p style="font-size: 12px" class="card-subtitle mb-2 text-muted">
+          작성 날짜 : <%= data.작성날짜%> <%= data.수정됨%>
+        </p>
+        <!-- style="white-space:pre;" 작성된글의 줄바꿈이 나타나게 하는방법 -->
+        <p style="white-space: pre" class="card-text"><%= data.상세내용%></p>
+        <p style="font-size: 12px" class="card-subtitle mb-2 text-muted">
+          해야 할 날짜 : <%= data.날짜%>
+        </p>
         <% if (data.작성자 == 사용자.id) { %>
         <a class="btn btn-primary edit" href="/edit/<%= data._id %>">수정</a>
         <a class="btn btn-primary edit delete" data-id="<%= data._id%>">삭제</a>
@@ -112,7 +134,8 @@
                   <span
                     style="font-size: 10px; display: block; text-align: right"
                   >
-                    <span><%= chats[j].작성날짜%></span>
+                    <span><%= chats[j].작성날짜%></span
+                    ><span><%= chats[j].수정됨%></span>
                   </span>
                 </div>
                 <%}%> <% } %>
