@@ -125,7 +125,9 @@ app.get("/write", function (요청, 응답) {
   if (요청.user === undefined) {
     응답.send("로그인해주세요");
   } else {
-    응답.render("write.ejs", { 사용자: 요청.user });
+    응답.render("write.ejs", {
+      사용자: 요청.user,
+    });
   }
 });
 
@@ -145,14 +147,7 @@ app.get("/list", function (요청, 응답) {
         // 가저온 자료를 ejs에 넣는 방법
         응답.render("list.ejs", {
           posts: 결과,
-          작성날짜:
-            date.getMonth() +
-            1 +
-            "월 " +
-            date.getDate() +
-            "일 " +
-            date.getHours() +
-            "시",
+
           사용자: 요청.user,
         });
       });
@@ -247,8 +242,9 @@ app.put("/edit", function (요청, 응답) {
         날짜: 요청.body.inputDate,
         // 날짜는 해야할 날짜
         작성날짜:
-          date.getMonth() +
-          1 +
+          date.getFullYear() +
+          "년 " +
+          (date.getMonth() + 1) +
           "월 " +
           date.getDate() +
           "일 " +
@@ -285,8 +281,9 @@ app.put("/editComments", function (요청, 응답) {
       $set: {
         내용: 요청.body.inputChat,
         작성날짜:
-          date.getMonth() +
-          1 +
+          date.getFullYear() +
+          "년 " +
+          (date.getMonth() + 1) +
           "월 " +
           date.getDate() +
           "일 " +
@@ -317,8 +314,9 @@ app.post("/add", function (요청, 응답) {
         // 날짜는 해야할 날짜입니다.
         상세내용: 요청.body.inputContent,
         작성날짜:
-          date.getMonth() +
-          1 +
+          date.getFullYear() +
+          "년 " +
+          (date.getMonth() + 1) +
           "월 " +
           date.getDate() +
           "일 " +
@@ -427,8 +425,9 @@ app.post("/chat", login, function (req, res) {
         _id: totalPost + 1,
         내용: req.body.inputChat,
         작성날짜:
-          date.getMonth() +
-          1 +
+          date.getFullYear() +
+          "년 " +
+          (date.getMonth() + 1) +
           "월 " +
           date.getDate() +
           "일 " +
